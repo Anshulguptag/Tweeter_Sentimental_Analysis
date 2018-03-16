@@ -1,70 +1,54 @@
-import dash
-from dash.dependencies import Output, Event
-import dash_core_components as dcc
-import dash_html_components as html
-import plotly
-import random
-import numpy as np
-import plotly.graph_objs as go
-from collections import deque
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
-X = deque(maxlen=20)
-X.append(1)
-Y = deque(maxlen=20)
-Y.append(1)
+''''''
+fig = plt.figure()
+ax1 = plt.axes(xlim=(0,10), ylim=(0,-10))
 
 
-app = dash.Dash(__name__)
-app.layout = html.Div(
-    [
-        dcc.Graph(id='live-graph', animate=True),
-        dcc.Interval(
-            id='graph-update',
-            interval=1*10000
-        ),
-    ]
-)
-
-@app.callback(Output('live-graph', 'figure'),
-              events=[Event('graph-update', 'interval')])
-def update_graph_scatter():
+def animate(i):
     pulldata = open("C:\\Users\\anshul\\jupyter\\sample.txt", "r").read()
     lines = pulldata.split('\n')
     xar = []
-    yar = []
-    '''
+    #yar=[]
+
     par = []
     nar = []
     near = []
     p = 0
     n = 0
     ne = 0
-    '''
-    x1 = 0
-    y = 0
+
+    x = 0
+    y=0
     for l in lines:
-        x1 += 1
+        x += 1
         if 'Positive' in l:
-            y += 1
+            p += 1
         elif 'Negative' in l:
-            y -= 1
-            # else:
-            #  ne += 0
+            n +=1
+        else:
+            ne += 1
 
-    X.append(x1)
-    Y.append(y/x1)
+        xar.append(x)
+        #yar.append(y)
 
-    data = plotly.graph_objs.Scatter(
-            x=list(X),
-            y=list(Y),
-            name='Scatter',
-            mode= 'lines+markers'
-            )
-
-    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(X),max(X)]),
-                                                yaxis=dict(range=[min(Y),max(Y)]),)}
+        par.append(p)
+        nar.append(n)
+        near.append(ne)
 
 
+    labels=[('positive',(p/x)),('negative',(n/x)),('neutral',(ne/x))]
+    sizes=[(p/x), (n/x), (ne/x)]
+    colors=['red','green','blue']
+    ax1.clear()
+    ax1.pie(sizes, labels=labels, colors=colors)
+    circle=plt.Circle(xy=(0,0), radius=0.75, facecolor='white')
+    plt.gca().add_artist(circle)
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    ax1.plot(xar, nar, 'b')
+    ax1.plot(xar, near, 'g')
+
+
+ani = animation.FuncAnimation(fig, animate, interval=1000)
+plt.show()
